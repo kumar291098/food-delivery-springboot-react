@@ -3,7 +3,10 @@ package com.foodapp.orderservice.controller;
 import com.foodapp.orderservice.dto.OrderRequest;
 import com.foodapp.orderservice.dto.OrderResponse;
 import com.foodapp.orderservice.dto.OrderSummaryResponse;
+import com.foodapp.orderservice.dto.UpdateOrderStatusRequest;
+import com.foodapp.orderservice.entity.Order;
 import com.foodapp.orderservice.service.OrderService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,5 +41,18 @@ public class OrderController {
     public ResponseEntity<List<OrderSummaryResponse>> getUserOrders(@PathVariable Long userId) {
         List<OrderSummaryResponse> orders = orderService.getUserOrders(userId);
         return new ResponseEntity<>(orders, HttpStatus.OK);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Order>> getAllOrders() {
+        return new ResponseEntity<>(orderService.getAllOrders(), HttpStatus.OK);
+    }
+
+    @PutMapping("/{orderId}/status")
+    public ResponseEntity<OrderResponse> updateOrderStatus(
+            @PathVariable Long orderId,
+            @Valid @RequestBody UpdateOrderStatusRequest request) {
+        OrderResponse response = orderService.updateOrderStatus(orderId, request.getStatus(), request.getDriverEmail(), request.getDriverName());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

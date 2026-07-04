@@ -35,6 +35,9 @@ public class User {
 	@Column(nullable = false)
 	private String address;
 
+	@Column(nullable = false)
+	private String role;
+
 	@Column(nullable = false, updatable = false)
 	private LocalDateTime createdDate;
 
@@ -45,6 +48,9 @@ public class User {
 	public void onCreate() {
 		if (createdDate == null) {
 			createdDate = LocalDateTime.now();
+		}
+		if (role == null) {
+			role = "CUSTOMER";
 		}
 		active = true;
 	}
@@ -119,5 +125,13 @@ public class User {
 
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+
+	public String getRole() {
+		return role;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
 	}
 }

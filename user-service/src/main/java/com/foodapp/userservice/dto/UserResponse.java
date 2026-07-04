@@ -12,6 +12,7 @@ public class UserResponse {
 	private String address;
 	private LocalDateTime createdDate;
 	private boolean active;
+	private String role;
 
 	public Long getId() {
 		return id;
@@ -75,5 +76,13 @@ public class UserResponse {
 
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+
+	public String getRole() {
+		return role;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
 	}
 }

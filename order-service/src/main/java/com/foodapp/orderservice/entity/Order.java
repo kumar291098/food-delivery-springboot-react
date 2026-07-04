@@ -25,11 +25,23 @@ public class Order {
     private String instructions;
 
     @Column(nullable = false)
+    private String customerEmail;
+
+    @Column(nullable = false)
+    private String customerPhoneNumber;
+
+    @Column(nullable = false)
     private Double totalAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status;
+
+    @Column(name = "driver_email")
+    private String driverEmail;
+
+    @Column(name = "driver_name")
+    private String driverName;
 
     // CascadeType.ALL ensures saving an Order also saves its OrderItems
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -62,6 +74,12 @@ public class Order {
     public String getInstructions() { return instructions; }
     public void setInstructions(String instructions) { this.instructions = instructions; }
 
+    public String getCustomerEmail() { return customerEmail; }
+    public void setCustomerEmail(String customerEmail) { this.customerEmail = customerEmail; }
+
+    public String getCustomerPhoneNumber() { return customerPhoneNumber; }
+    public void setCustomerPhoneNumber(String customerPhoneNumber) { this.customerPhoneNumber = customerPhoneNumber; }
+
     public Double getTotalAmount() { return totalAmount; }
     public void setTotalAmount(Double totalAmount) { this.totalAmount = totalAmount; }
 
@@ -70,4 +88,10 @@ public class Order {
 
     public List<OrderItem> getItems() { return items; }
     public void setItems(List<OrderItem> items) { this.items = items; }
+
+    public String getDriverEmail() { return driverEmail; }
+    public void setDriverEmail(String driverEmail) { this.driverEmail = driverEmail; }
+
+    public String getDriverName() { return driverName; }
+    public void setDriverName(String driverName) { this.driverName = driverName; }
 }
