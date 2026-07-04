@@ -26,6 +26,8 @@ public class RegisterRequest {
 	@NotBlank
 	private String address;
 
+	private String role;
+
 	public String getEmail() {
 		return email;
 	}
@@ -72,5 +74,13 @@ public class RegisterRequest {
 
 	public void setAddress(String address) {
 		this.address = address;
+	}
+
+	public String getRole() {
+		return role;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
 	}
 }

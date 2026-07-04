@@ -8,6 +8,8 @@ public class OrderRequest {
     private List<OrderItemRequest> items;
     private String deliveryAddress;
     private String instructions;
+    private String customerEmail;
+    private String customerPhoneNumber;
 //    getters & setters
 
     public Long getUserId() {
@@ -50,5 +52,20 @@ public class OrderRequest {
         this.instructions = instructions;
     }
 
+    public String getCustomerEmail() {
+        return customerEmail;
+    }
+
+    public void setCustomerEmail(String customerEmail) {
+        this.customerEmail = customerEmail;
+    }
+
+    public String getCustomerPhoneNumber() {
+        return customerPhoneNumber;
+    }
+
+    public void setCustomerPhoneNumber(String customerPhoneNumber) {
+        this.customerPhoneNumber = customerPhoneNumber;
+    }
 
 }

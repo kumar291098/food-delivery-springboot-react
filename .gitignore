@@ -31,3 +31,18 @@ build/
 
 ### VS Code ###
 .vscode/
+frontend/node_modules/
+frontend/dist/
+
+# Generic JS node_modules & build directories
+**/node_modules/
+**/dist/
+
+# Local logs
+**/run-logs/
+**/logs/
+*.log
+
+# Helper scripts
+start-services-bg.ps1
+

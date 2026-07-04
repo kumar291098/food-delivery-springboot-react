@@ -7,8 +7,10 @@ import com.foodapp.orderservice.dto.OrderSummaryResponse;
 import com.foodapp.orderservice.entity.Order;
 import com.foodapp.orderservice.entity.OrderItem;
 import com.foodapp.orderservice.entity.OrderStatus;
+import com.foodapp.orderservice.integration.NotificationClient;
 import com.foodapp.orderservice.repository.OrderRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,17 +19,22 @@ import java.util.List;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final NotificationClient notificationClient;
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository, NotificationClient notificationClient) {
         this.orderRepository = orderRepository;
+        this.notificationClient = notificationClient;
     }
 
+    @Transactional
     public OrderResponse createOrder(OrderRequest request) {
         Order order = new Order();
         order.setUserId(request.getUserId());
         order.setRestaurantId(request.getRestaurantId());
         order.setDeliveryAddress(request.getDeliveryAddress());
         order.setInstructions(request.getInstructions());
+        order.setCustomerEmail(request.getCustomerEmail());
+        order.setCustomerPhoneNumber(request.getCustomerPhoneNumber());
         order.setStatus(OrderStatus.PENDING);
 
         double totalAmount = 0.0;
@@ -53,6 +60,7 @@ public class OrderService {
         // This single line saves the Order AND all OrderItems to PostgreSQL
         // because of CascadeType.ALL in your entity.
         Order savedOrder = orderRepository.save(order);
+        notificationClient.sendOrderUpdate(savedOrder);
 
         return new OrderResponse(
                 savedOrder.getId().toString(),
@@ -61,10 +69,9 @@ public class OrderService {
         );
     }
 
+    @Transactional(readOnly = true)
     public OrderResponse getOrderStatus(Long orderId) {
-        // Fetch from database or throw a simple exception if missing
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+        Order order = findOrder(orderId);
 
         return new OrderResponse(
                 order.getId().toString(),
@@ -73,6 +80,7 @@ public class OrderService {
         );
     }
 
+    @Transactional(readOnly = true)
     public List<OrderSummaryResponse> getUserOrders(Long userId) {
         List<Order> orders = orderRepository.findByUserId(userId);
         List<OrderSummaryResponse> summaryList = new ArrayList<>();
@@ -87,5 +95,35 @@ public class OrderService {
         }
 
         return summaryList;
+    }
+
+    @Transactional
+    public OrderResponse updateOrderStatus(Long orderId, String status, String driverEmail, String driverName) {
+        Order order = findOrder(orderId);
+        order.setStatus(OrderStatus.valueOf(status.trim().toUpperCase()));
+        if (driverEmail != null) {
+            order.setDriverEmail(driverEmail);
+        }
+        if (driverName != null) {
+            order.setDriverName(driverName);
+        }
+        Order updatedOrder = orderRepository.save(order);
+        notificationClient.sendOrderUpdate(updatedOrder);
+
+        return new OrderResponse(
+                updatedOrder.getId().toString(),
+                updatedOrder.getStatus().name(),
+                "Order status updated successfully"
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
+    private Order findOrder(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
     }
 }

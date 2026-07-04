@@ -37,6 +37,11 @@ public class UserService {
 		user.setLastName(request.getLastName().trim());
 		user.setPhoneNumber(request.getPhoneNumber().trim());
 		user.setAddress(request.getAddress().trim());
+		if (request.getRole() != null) {
+			user.setRole(request.getRole().trim().toUpperCase());
+		} else {
+			user.setRole("CUSTOMER");
+		}
 
 		User saved = userRepository.save(user);
 		return mapToUserResponse(saved);
@@ -92,6 +97,7 @@ public class UserService {
 		response.setAddress(user.getAddress());
 		response.setCreatedDate(user.getCreatedDate());
 		response.setActive(user.isActive());
+		response.setRole(user.getRole());
 		return response;
 	}
 }
