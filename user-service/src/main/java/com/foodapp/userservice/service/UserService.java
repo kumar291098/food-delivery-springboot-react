@@ -19,9 +19,11 @@ public class UserService {
 
 	private final UserRepository userRepository;
 	private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+	private final JwtService jwtService;
 
-	public UserService(UserRepository userRepository) {
+	public UserService(UserRepository userRepository, JwtService jwtService) {
 		this.userRepository = userRepository;
+		this.jwtService = jwtService;
 	}
 
 	@Transactional
@@ -56,7 +58,8 @@ public class UserService {
 			throw new UnauthorizedException("Invalid email or password");
 		}
 
-		return new LoginResponse("Login successful", mapToUserResponse(user));
+		String token = jwtService.generateToken(user.getId().toString(), user.getEmail(), user.getRole());
+		return new LoginResponse("Login successful", mapToUserResponse(user), token);
 	}
 
 	@Transactional(readOnly = true)
