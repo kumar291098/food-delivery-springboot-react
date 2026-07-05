@@ -33,10 +33,13 @@ services:
     depends_on:
       discovery-service:
         condition: service_healthy
+      zipkin:
+        condition: service_started
     command: java -jar gateway-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
     networks:
       - food-delivery-network
 
@@ -52,11 +55,13 @@ services:
     depends_on:
       - discovery-service
       - postgres
+      - zipkin
     command: java -jar user-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/foodflow_user
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
     networks:
       - food-delivery-network
 
@@ -72,11 +77,13 @@ services:
     depends_on:
       - discovery-service
       - postgres
+      - zipkin
     command: java -jar restaurant-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/foodflow_restaurant
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
     networks:
       - food-delivery-network
 
@@ -93,12 +100,14 @@ services:
       - discovery-service
       - rabbitmq
       - postgres
+      - zipkin
     command: java -jar order-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/foodflow_order
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
     networks:
       - food-delivery-network
 
@@ -114,11 +123,13 @@ services:
     depends_on:
       - discovery-service
       - postgres
+      - zipkin
     command: java -jar payment-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/foodflow_payment
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
     networks:
       - food-delivery-network
 
@@ -134,11 +145,13 @@ services:
     depends_on:
       - discovery-service
       - rabbitmq
+      - zipkin
     command: java -jar notification-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - SPRING_RABBITMQ_HOST=rabbitmq
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
     networks:
       - food-delivery-network
 
@@ -164,6 +177,15 @@ services:
     volumes:
       - ./init-db:/docker-entrypoint-initdb.d
       - postgres-data:/var/lib/postgresql/data
+    networks:
+      - food-delivery-network
+
+  # Zipkin Tracing Dashboard
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - "9411:9411"
     networks:
       - food-delivery-network
 
