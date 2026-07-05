@@ -51,10 +51,12 @@ services:
       - "8081:8081"
     depends_on:
       - discovery-service
+      - postgres
     command: java -jar user-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/foodflow_user
     networks:
       - food-delivery-network
 
@@ -69,10 +71,12 @@ services:
       - "8082:8082"
     depends_on:
       - discovery-service
+      - postgres
     command: java -jar restaurant-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/foodflow_restaurant
     networks:
       - food-delivery-network
 
@@ -88,11 +92,13 @@ services:
     depends_on:
       - discovery-service
       - rabbitmq
+      - postgres
     command: java -jar order-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/foodflow_order
     networks:
       - food-delivery-network
 
@@ -107,10 +113,12 @@ services:
       - "8084:8084"
     depends_on:
       - discovery-service
+      - postgres
     command: java -jar payment-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/foodflow_payment
     networks:
       - food-delivery-network
 
@@ -144,7 +152,25 @@ services:
     networks:
       - food-delivery-network
 
+  # PostgreSQL Database Server
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=root
+    volumes:
+      - ./init-db:/docker-entrypoint-initdb.d
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - food-delivery-network
+
 networks:
   food-delivery-network:
     driver: bridge
+
+volumes:
+  postgres-data:
 
