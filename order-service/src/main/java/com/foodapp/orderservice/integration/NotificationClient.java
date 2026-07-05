@@ -4,18 +4,18 @@ import com.foodapp.orderservice.dto.OrderNotificationRequest;
 import com.foodapp.orderservice.entity.Order;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
 
 @Component
 public class NotificationClient {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationClient.class);
 
-    private final RestClient restClient;
+    private final RabbitTemplate rabbitTemplate;
 
-    public NotificationClient(RestClient.Builder restClientBuilder) {
-        this.restClient = restClientBuilder.baseUrl("http://notification-service").build();
+    public NotificationClient(RabbitTemplate rabbitTemplate) {
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     public void sendOrderUpdate(Order order) {
@@ -27,14 +27,10 @@ public class NotificationClient {
         request.setStatus(order.getStatus().name());
 
         try {
-            restClient.post()
-                    .uri("/api/notifications/order-update")
-                    .body(request)
-                    .retrieve()
-                    .toBodilessEntity();
+            log.info("Publishing order status update event to RabbitMQ for order ID: {}", order.getId());
+            rabbitTemplate.convertAndSend("order-exchange", "order.status.update", request);
         } catch (Exception ex) {
-            // Keep order operations available even if the notification service is down.
-            log.warn("Notification service call failed for order {}: {}", order.getId(), ex.getMessage());
+            log.error("Failed to publish order event to RabbitMQ for order ID {}: {}", order.getId(), ex.getMessage());
         }
     }
 }
