@@ -1,0 +1,19 @@
+CREATE TABLE restaurants (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    cuisine VARCHAR(255) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    phone_number VARCHAR(255) NOT NULL,
+    rating DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    owner_email VARCHAR(255)
+);
+
+CREATE TABLE menu_items (
+    id BIGSERIAL PRIMARY KEY,
+    restaurant_id BIGINT NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    description VARCHAR(500) NOT NULL,
+    price DOUBLE PRECISION NOT NULL,
+    available BOOLEAN NOT NULL DEFAULT TRUE
+);
