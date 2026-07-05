@@ -7,7 +7,10 @@ import com.foodapp.orderservice.dto.OrderSummaryResponse;
 import com.foodapp.orderservice.entity.Order;
 import com.foodapp.orderservice.entity.OrderItem;
 import com.foodapp.orderservice.entity.OrderStatus;
+import com.foodapp.orderservice.dto.RestaurantResponse;
+import com.foodapp.orderservice.dto.MenuItemResponse;
 import com.foodapp.orderservice.integration.NotificationClient;
+import com.foodapp.orderservice.integration.RestaurantClient;
 import com.foodapp.orderservice.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,14 +23,25 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final NotificationClient notificationClient;
+    private final RestaurantClient restaurantClient;
 
-    public OrderService(OrderRepository orderRepository, NotificationClient notificationClient) {
+    public OrderService(OrderRepository orderRepository, NotificationClient notificationClient, RestaurantClient restaurantClient) {
         this.orderRepository = orderRepository;
         this.notificationClient = notificationClient;
+        this.restaurantClient = restaurantClient;
     }
 
     @Transactional
     public OrderResponse createOrder(OrderRequest request) {
+        // Fetch and validate restaurant info dynamically
+        RestaurantResponse restaurant = restaurantClient.getRestaurantById(request.getRestaurantId());
+        if (restaurant == null) {
+            throw new IllegalArgumentException("Restaurant not found with id: " + request.getRestaurantId());
+        }
+        if (restaurant.getActive() != null && !restaurant.getActive()) {
+            throw new IllegalArgumentException("Restaurant with id: " + request.getRestaurantId() + " is currently inactive");
+        }
+
         Order order = new Order();
         order.setUserId(request.getUserId());
         order.setRestaurantId(request.getRestaurantId());
@@ -44,9 +58,17 @@ public class OrderService {
             item.setMenuItemId(itemRequest.getMenuItemId());
             item.setQuantity(itemRequest.getQuantity());
 
-            // Note: Since we don't have a Restaurant/Menu service yet to fetch the real price,
-            // we are mocking the price of each item as 15.00 for now.
-            double itemPrice = 15.00;
+            // Retrieve price and availability dynamically from restaurant menu
+            MenuItemResponse menuItem = restaurant.getMenuItems().stream()
+                    .filter(m -> m.getId().equals(itemRequest.getMenuItemId()))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Menu item " + itemRequest.getMenuItemId() + " not found in restaurant menu"));
+
+            if (menuItem.getAvailable() != null && !menuItem.getAvailable()) {
+                throw new IllegalArgumentException("Menu item " + menuItem.getName() + " is currently unavailable");
+            }
+
+            double itemPrice = menuItem.getPrice() != null ? menuItem.getPrice() : 0.0;
             item.setPrice(itemPrice);
 
             totalAmount += (itemPrice * itemRequest.getQuantity());
