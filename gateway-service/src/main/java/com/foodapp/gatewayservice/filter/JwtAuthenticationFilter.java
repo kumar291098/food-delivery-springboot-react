@@ -39,7 +39,8 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
             // 1. Exclude public endpoints
             String path = request.getURI().getPath();
             if (path.contains("/api/users/login") || path.contains("/api/users/register") || 
-                (path.contains("/api/restaurants") && request.getMethod().name().equals("GET"))) {
+                (path.contains("/api/restaurants") && request.getMethod().name().equals("GET")) ||
+                path.contains("/v3/api-docs") || path.contains("/swagger-ui") || path.contains("/webjars")) {
                 return chain.filter(exchange);
             }
 
