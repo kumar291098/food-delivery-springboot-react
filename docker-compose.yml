@@ -1,6 +1,24 @@
 version: '3.8'
 
 services:
+  # Central Configuration Server
+  config-server:
+    image: openjdk:17-jdk-slim
+    container_name: config-server
+    working_dir: /app
+    volumes:
+      - ./config-server/target:/app
+      - ./config-repo:/config-repo
+    ports:
+      - "8888:8888"
+    command: java -jar config-server-0.0.1-SNAPSHOT.jar
+    environment:
+      - JAVA_OPTS=-Xmx256m -Xms256m
+      - SPRING_PROFILES_ACTIVE=native
+      - SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS=file:/config-repo
+    networks:
+      - food-delivery-network
+
   # Eureka Discovery Server
   discovery-service:
     image: openjdk:17-jdk-slim
@@ -16,7 +34,7 @@ services:
     networks:
       - food-delivery-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8761/"]
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8761 && exec 3>&- || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -31,15 +49,14 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      discovery-service:
-        condition: service_healthy
-      zipkin:
-        condition: service_started
+      - config-server
+      - discovery-service
+      - zipkin
     command: java -jar gateway-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
-      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
-      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - SPRING_CONFIG_IMPORT=configserver:http://config-server:8888
+      - SPRING_PROFILES_ACTIVE=docker
     networks:
       - food-delivery-network
 
@@ -53,15 +70,15 @@ services:
     ports:
       - "8081:8081"
     depends_on:
+      - config-server
       - discovery-service
       - postgres
       - zipkin
     command: java -jar user-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
-      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/foodflow_user
-      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - SPRING_CONFIG_IMPORT=configserver:http://config-server:8888
+      - SPRING_PROFILES_ACTIVE=docker
     networks:
       - food-delivery-network
 
@@ -75,15 +92,15 @@ services:
     ports:
       - "8082:8082"
     depends_on:
+      - config-server
       - discovery-service
       - postgres
       - zipkin
     command: java -jar restaurant-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
-      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/foodflow_restaurant
-      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - SPRING_CONFIG_IMPORT=configserver:http://config-server:8888
+      - SPRING_PROFILES_ACTIVE=docker
     networks:
       - food-delivery-network
 
@@ -97,6 +114,7 @@ services:
     ports:
       - "8083:8083"
     depends_on:
+      - config-server
       - discovery-service
       - rabbitmq
       - postgres
@@ -104,10 +122,8 @@ services:
     command: java -jar order-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
-      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/foodflow_order
-      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - SPRING_CONFIG_IMPORT=configserver:http://config-server:8888
+      - SPRING_PROFILES_ACTIVE=docker
     networks:
       - food-delivery-network
 
@@ -121,15 +137,15 @@ services:
     ports:
       - "8084:8084"
     depends_on:
+      - config-server
       - discovery-service
       - postgres
       - zipkin
     command: java -jar payment-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
-      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/foodflow_payment
-      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - SPRING_CONFIG_IMPORT=configserver:http://config-server:8888
+      - SPRING_PROFILES_ACTIVE=docker
     networks:
       - food-delivery-network
 
@@ -143,15 +159,15 @@ services:
     ports:
       - "8085:8085"
     depends_on:
+      - config-server
       - discovery-service
       - rabbitmq
       - zipkin
     command: java -jar notification-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
-      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - SPRING_CONFIG_IMPORT=configserver:http://config-server:8888
+      - SPRING_PROFILES_ACTIVE=docker
     networks:
       - food-delivery-network
 
@@ -195,4 +211,3 @@ networks:
 
 volumes:
   postgres-data:
-
