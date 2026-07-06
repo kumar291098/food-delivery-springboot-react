@@ -233,20 +233,20 @@ export default function Home({
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {pendingOrders.map((o) => (
-                  <div key={o.orderId} style={{ background: "rgba(0,0,0,0.02)", border: "1px solid rgba(0,0,0,0.06)", borderRadius: "8px", padding: "12px" }}>
+                  <div key={o.id || o.orderId} style={{ background: "rgba(0,0,0,0.02)", border: "1px solid rgba(0,0,0,0.06)", borderRadius: "8px", padding: "12px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                      <strong>#{o.orderId}</strong>
+                      <strong>#{o.id || o.orderId}</strong>
                       <span style={{ fontSize: "12px", background: "#fee2e2", color: "#ef4444", padding: "2px 6px", borderRadius: "4px", textTransform: "uppercase" }}>{o.status}</span>
                     </div>
                     <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "8px" }}>
                       {o.items.map((i) => `${i.quantity}x MenuItem #${i.menuItemId}`).join(", ")}
                     </div>
                     {o.status === "PENDING" ? (
-                      <button className="primary-button" style={{ width: "100%", padding: "6px", fontSize: "12px", background: "#10b981" }} onClick={() => handleUpdateStatus(o.orderId, "ACCEPTED")}>
+                      <button className="primary-button" style={{ width: "100%", padding: "6px", fontSize: "12px", background: "#10b981" }} onClick={() => handleUpdateStatus(o.id || o.orderId, "ACCEPTED")}>
                         Accept Order
                       </button>
                     ) : (
-                      <button className="primary-button" style={{ width: "100%", padding: "6px", fontSize: "12px", background: "#f59e0b" }} onClick={() => handleUpdateStatus(o.orderId, "PREPARING")}>
+                      <button className="primary-button" style={{ width: "100%", padding: "6px", fontSize: "12px", background: "#f59e0b" }} onClick={() => handleUpdateStatus(o.id || o.orderId, "PREPARING")}>
                         Start Preparing
                       </button>
                     )}
@@ -262,15 +262,15 @@ export default function Home({
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {preparingOrders.map((o) => (
-                  <div key={o.orderId} style={{ background: "rgba(0,0,0,0.02)", border: "1px solid rgba(0,0,0,0.06)", borderRadius: "8px", padding: "12px" }}>
+                  <div key={o.id || o.orderId} style={{ background: "rgba(0,0,0,0.02)", border: "1px solid rgba(0,0,0,0.06)", borderRadius: "8px", padding: "12px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                      <strong>#{o.orderId}</strong>
+                      <strong>#{o.id || o.orderId}</strong>
                       <span style={{ fontSize: "12px", background: "#fef3c7", color: "#d97706", padding: "2px 6px", borderRadius: "4px" }}>PREPARING</span>
                     </div>
                     <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "8px" }}>
                       {o.items.map((i) => `${i.quantity}x MenuItem #${i.menuItemId}`).join(", ")}
                     </div>
-                    <button className="primary-button" style={{ width: "100%", padding: "6px", fontSize: "12px", background: "#3b82f6" }} onClick={() => handleUpdateStatus(o.orderId, "SEARCHING_FOR_DELIVERY_PARTNER")}>
+                    <button className="primary-button" style={{ width: "100%", padding: "6px", fontSize: "12px", background: "#3b82f6" }} onClick={() => handleUpdateStatus(o.id || o.orderId, "SEARCHING_FOR_DELIVERY_PARTNER")}>
                       Ready for Dispatch
                     </button>
                   </div>
@@ -285,9 +285,9 @@ export default function Home({
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {dispatchedOrders.map((o) => (
-                  <div key={o.orderId} style={{ background: "rgba(0,0,0,0.02)", border: "1px solid rgba(0,0,0,0.06)", borderRadius: "8px", padding: "12px" }}>
+                  <div key={o.id || o.orderId} style={{ background: "rgba(0,0,0,0.02)", border: "1px solid rgba(0,0,0,0.06)", borderRadius: "8px", padding: "12px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                      <strong>#{o.orderId}</strong>
+                      <strong>#{o.id || o.orderId}</strong>
                       <span style={{ fontSize: "11px", background: "#d1fae5", color: "#059669", padding: "2px 6px", borderRadius: "4px", textTransform: "uppercase" }}>{o.status.replace(/_/g, " ")}</span>
                     </div>
                     <span style={{ display: "block", fontSize: "12px", color: "#475569" }}>Total: {currency(o.totalAmount)}</span>

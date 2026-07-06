@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Central Configuration Server
   config-server:
-    image: openjdk:17-jdk-slim
+    image: eclipse-temurin:17-jre
     container_name: config-server
     working_dir: /app
     volumes:
@@ -18,10 +18,15 @@ services:
       - SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS=file:/config-repo
     networks:
       - food-delivery-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
 
   # Eureka Discovery Server
   discovery-service:
-    image: openjdk:17-jdk-slim
+    image: eclipse-temurin:17-jre
     container_name: discovery-service
     working_dir: /app
     volumes:
@@ -34,14 +39,14 @@ services:
     networks:
       - food-delivery-network
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8761 && exec 3>&- || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
 
   # API Gateway
   gateway-service:
-    image: openjdk:17-jdk-slim
+    image: eclipse-temurin:17-jre
     container_name: gateway-service
     working_dir: /app
     volumes:
@@ -49,9 +54,12 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - config-server
-      - discovery-service
-      - zipkin
+      config-server:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      zipkin:
+        condition: service_started
     command: java -jar gateway-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
@@ -62,7 +70,7 @@ services:
 
   # User Service
   user-service:
-    image: openjdk:17-jdk-slim
+    image: eclipse-temurin:17-jre
     container_name: user-service
     working_dir: /app
     volumes:
@@ -70,10 +78,14 @@ services:
     ports:
       - "8081:8081"
     depends_on:
-      - config-server
-      - discovery-service
-      - postgres
-      - zipkin
+      config-server:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      postgres:
+        condition: service_started
+      zipkin:
+        condition: service_started
     command: java -jar user-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
@@ -84,7 +96,7 @@ services:
 
   # Restaurant Service
   restaurant-service:
-    image: openjdk:17-jdk-slim
+    image: eclipse-temurin:17-jre
     container_name: restaurant-service
     working_dir: /app
     volumes:
@@ -92,10 +104,14 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      - config-server
-      - discovery-service
-      - postgres
-      - zipkin
+      config-server:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      postgres:
+        condition: service_started
+      zipkin:
+        condition: service_started
     command: java -jar restaurant-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
@@ -106,7 +122,7 @@ services:
 
   # Order Service
   order-service:
-    image: openjdk:17-jdk-slim
+    image: eclipse-temurin:17-jre
     container_name: order-service
     working_dir: /app
     volumes:
@@ -114,11 +130,16 @@ services:
     ports:
       - "8083:8083"
     depends_on:
-      - config-server
-      - discovery-service
-      - rabbitmq
-      - postgres
-      - zipkin
+      config-server:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      postgres:
+        condition: service_started
+      zipkin:
+        condition: service_started
     command: java -jar order-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
@@ -129,7 +150,7 @@ services:
 
   # Payment Service
   payment-service:
-    image: openjdk:17-jdk-slim
+    image: eclipse-temurin:17-jre
     container_name: payment-service
     working_dir: /app
     volumes:
@@ -137,10 +158,14 @@ services:
     ports:
       - "8084:8084"
     depends_on:
-      - config-server
-      - discovery-service
-      - postgres
-      - zipkin
+      config-server:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      postgres:
+        condition: service_started
+      zipkin:
+        condition: service_started
     command: java -jar payment-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m
@@ -151,7 +176,7 @@ services:
 
   # Notification Service
   notification-service:
-    image: openjdk:17-jdk-slim
+    image: eclipse-temurin:17-jre
     container_name: notification-service
     working_dir: /app
     volumes:
@@ -159,10 +184,14 @@ services:
     ports:
       - "8085:8085"
     depends_on:
-      - config-server
-      - discovery-service
-      - rabbitmq
-      - zipkin
+      config-server:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      zipkin:
+        condition: service_started
     command: java -jar notification-service-0.0.1-SNAPSHOT.jar
     environment:
       - JAVA_OPTS=-Xmx256m -Xms256m

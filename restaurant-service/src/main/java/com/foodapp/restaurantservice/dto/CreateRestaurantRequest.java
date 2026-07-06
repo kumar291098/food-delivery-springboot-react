@@ -24,7 +24,6 @@ public class CreateRestaurantRequest {
 	private Double rating;
 
 	@Valid
-	@NotEmpty
 	private List<MenuItemRequest> menuItems;
 
 	private String ownerEmail;

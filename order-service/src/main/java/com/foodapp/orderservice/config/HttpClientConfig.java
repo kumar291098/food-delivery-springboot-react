@@ -1,6 +1,6 @@
 package com.foodapp.orderservice.config;
 
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.cloud.client.loadbalancer.DeferringLoadBalancerInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
@@ -9,8 +9,10 @@ import org.springframework.web.client.RestClient;
 public class HttpClientConfig {
 
     @Bean
-    @LoadBalanced
-    RestClient.Builder restClientBuilder() {
-        return RestClient.builder();
+    RestClient restaurantRestClient(RestClient.Builder restClientBuilder, DeferringLoadBalancerInterceptor loadBalancerInterceptor) {
+        return restClientBuilder
+                .requestInterceptor(loadBalancerInterceptor)
+                .baseUrl("http://restaurant-service")
+                .build();
     }
 }

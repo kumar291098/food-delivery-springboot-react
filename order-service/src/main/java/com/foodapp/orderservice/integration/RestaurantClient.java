@@ -14,8 +14,8 @@ public class RestaurantClient {
 
     private final RestClient restClient;
 
-    public RestaurantClient(RestClient.Builder restClientBuilder) {
-        this.restClient = restClientBuilder.baseUrl("http://restaurant-service").build();
+    public RestaurantClient(RestClient restaurantRestClient) {
+        this.restClient = restaurantRestClient;
     }
 
     @CircuitBreaker(name = "restaurantService", fallbackMethod = "getRestaurantByIdFallback")

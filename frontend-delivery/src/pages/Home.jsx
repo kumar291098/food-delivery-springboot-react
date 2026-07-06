@@ -13,7 +13,7 @@ export default function Home({
   async function handleClaimOrder(order) {
     if (!driver) return;
     try {
-      await request(`/api/orders/${order.orderId}/status`, {
+      await request(`/api/orders/${order.id || order.orderId}/status`, {
         method: "PUT",
         body: JSON.stringify({
           status: "OUT_FOR_DELIVERY",
@@ -21,7 +21,7 @@ export default function Home({
           driverName: `${driver.firstName} ${driver.lastName}`
         })
       });
-      setToast(`Delivery assigned: Order #${order.orderId}.`);
+      setToast(`Delivery assigned: Order #${order.id || order.orderId}.`);
       loadOrders();
     } catch (err) {
       setError(err.message);
@@ -125,9 +125,9 @@ export default function Home({
           ) : (
             <div className="history-list" style={{ padding: "16px" }}>
               {activeDeliveries.map((o) => (
-                <div key={o.orderId} style={{ border: "1px solid rgba(0,0,0,0.06)", borderRadius: "8px", padding: "16px", background: "rgba(16, 172, 132, 0.02)" }}>
+                <div key={o.id || o.orderId} style={{ border: "1px solid rgba(0,0,0,0.06)", borderRadius: "8px", padding: "16px", background: "rgba(16, 172, 132, 0.02)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
-                    <strong>Order #{o.orderId}</strong>
+                    <strong>Order #{o.id || o.orderId}</strong>
                     <span style={{ fontSize: "12px", background: "#d1fae5", color: "#065f46", padding: "2px 8px", borderRadius: "4px" }}>IN TRANSIT</span>
                   </div>
 
@@ -149,10 +149,10 @@ export default function Home({
                   )}
 
                   <div style={{ display: "flex", gap: "12px" }}>
-                    <button className="primary-button" style={{ flex: 1, background: "#10ac84", justifyContent: "center" }} onClick={() => handleCompleteDelivery(o.orderId)}>
+                    <button className="primary-button" style={{ flex: 1, background: "#10ac84", justifyContent: "center" }} onClick={() => handleCompleteDelivery(o.id || o.orderId)}>
                       Mark Delivered
                     </button>
-                    <button className="primary-button" style={{ background: "#ef4444", justifyContent: "center" }} onClick={() => handleReleaseOrder(o.orderId)}>
+                    <button className="primary-button" style={{ background: "#ef4444", justifyContent: "center" }} onClick={() => handleReleaseOrder(o.id || o.orderId)}>
                       Release Order
                     </button>
                   </div>
@@ -174,9 +174,9 @@ export default function Home({
           ) : (
             <div className="history-list" style={{ padding: "16px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
               {availableOrders.map((o) => (
-                <div key={o.orderId} style={{ border: "1px solid rgba(0,0,0,0.06)", borderRadius: "8px", padding: "16px" }}>
+                <div key={o.id || o.orderId} style={{ border: "1px solid rgba(0,0,0,0.06)", borderRadius: "8px", padding: "16px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                    <strong>Order #{o.orderId}</strong>
+                    <strong>Order #{o.id || o.orderId}</strong>
                     <strong>{currency(o.totalAmount)}</strong>
                   </div>
                   <div style={{ fontSize: "12px", color: "#64748b", display: "flex", gap: "6px", alignItems: "center", marginBottom: "12px" }}>
@@ -203,9 +203,9 @@ export default function Home({
           ) : (
             <div className="history-list" style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
               {completedOrders.map((o) => (
-                <div key={o.orderId} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.01)", border: "1px solid rgba(0,0,0,0.05)", padding: "12px", borderRadius: "6px" }}>
+                <div key={o.id || o.orderId} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.01)", border: "1px solid rgba(0,0,0,0.05)", padding: "12px", borderRadius: "6px" }}>
                   <div>
-                    <strong>Order #{o.orderId}</strong>
+                    <strong>Order #{o.id || o.orderId}</strong>
                     <span style={{ display: "block", fontSize: "11px", color: "#64748b" }}>To: {o.deliveryAddress}</span>
                   </div>
                   <span className="status-pill success" style={{ textTransform: "uppercase" }}>{o.status}</span>
