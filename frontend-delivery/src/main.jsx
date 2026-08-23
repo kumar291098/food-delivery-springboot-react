@@ -2,10 +2,10 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./styles.css";
-import { initDatadogRum } from "./datadog";
+import { initSentry } from "./sentry";
 
-// Initialize Datadog Real User Monitoring
-initDatadogRum("food-delivery-frontend-delivery");
+// Initialize Sentry Observability (Errors, Traces, Session Replays)
+initSentry("food-delivery-frontend-delivery");
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

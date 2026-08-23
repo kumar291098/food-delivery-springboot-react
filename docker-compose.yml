@@ -262,6 +262,44 @@ services:
     networks:
       - food-delivery-network
 
+  # Prometheus Time-Series Metrics Collector
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - food-delivery-network
+
+  # Grafana Visual Real-Time Dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - food-delivery-network
+
+  # Uptime Kuma (Self-Hosted Live Status Page & Uptime Alerts)
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    ports:
+      - "3001:3001"
+    volumes:
+      - uptime-kuma-data:/app/data
+    networks:
+      - food-delivery-network
+
 networks:
   food-delivery-network:
     driver: bridge
@@ -269,3 +307,6 @@ networks:
 volumes:
   postgres-data:
   elasticsearch-data:
+  prometheus-data:
+  grafana-data:
+  uptime-kuma-data:
