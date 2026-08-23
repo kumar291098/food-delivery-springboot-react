@@ -1,0 +1,73 @@
+name: Docker Test Runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_service:
+        description: 'Microservice to Test (ALL, or specific service name)'
+        required: true
+        default: 'ALL'
+        type: choice
+        options:
+          - ALL
+          - user-service
+          - restaurant-service
+          - order-service
+          - payment-service
+          - notification-service
+          - gateway-service
+          - discovery-service
+          - config-server
+      test_profile:
+        description: 'Spring Active Profile for Tests'
+        required: false
+        default: 'test'
+        type: string
+  pull_request:
+    paths:
+      - 'Dockerfile.test-runner'
+      - 'scripts/docker-test-runner.sh'
+      - '**/src/test/**'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-run-test-runner:
+    name: 🐳 Build Test Runner Image & Execute
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Test Runner Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.test-runner
+          tags: food-delivery-test-runner:latest
+          load: true
+          cache-from: type=gha,scope=standalone-test-runner
+          cache-to: type=gha,mode=max,scope=standalone-test-runner
+
+      - name: Run Test Runner Container
+        run: |
+          mkdir -p target/test-reports
+          echo "Starting Docker Test Runner Container..."
+          docker run --rm \
+            -e TARGET_SERVICE="${{ inputs.target_service || 'ALL' }}" \
+            -e SPRING_PROFILES_ACTIVE="${{ inputs.test_profile || 'test' }}" \
+            -v ${{ github.workspace }}/target/test-reports:/workspace/target/test-reports \
+            food-delivery-test-runner:latest
+
+      - name: Publish Test Summary
+        if: always()
+        run: |
+          echo "### 🧪 Docker Test Runner Execution Report" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target Service:** \`${{ inputs.target_service || 'ALL' }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Execution Mode:** Containerized (Docker)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ${{ job.status == 'success' && '✅ All Tests Passed' || '❌ Test Failures Encountered' }}" >> $GITHUB_STEP_SUMMARY

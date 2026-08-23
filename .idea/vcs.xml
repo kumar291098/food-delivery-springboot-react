@@ -2,6 +2,18 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/config-repo" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/config-server" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/discovery-service" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/food-delivery" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/frontend-delivery" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/frontend-restaurant" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/frontend-user" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/gateway-service" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/notification-service" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/order-service" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/payment-service" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/restaurant-service" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/user-service" vcs="Git" />
   </component>
 </project>
