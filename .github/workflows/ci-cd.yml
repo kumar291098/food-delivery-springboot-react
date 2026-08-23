@@ -60,6 +60,9 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Make Maven wrapper executable
+        run: chmod +x mvnw || true
+
       - name: Validate Maven POMs
         run: |
           echo "Validating root and submodule POM configurations..."
@@ -164,6 +167,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
+
+      - name: Make Maven wrapper executable
+        run: chmod +x mvnw || true
 
       - name: Run Unit & Integration Tests for ${{ matrix.service }}
         run: |
