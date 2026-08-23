@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <springProperty scope="context" name="springAppName" source="spring.application.name" defaultValue="user-service"/>
+
+    <!-- Structured JSON Console Appender for Elasticsearch & Kibana -->
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <timeZone>UTC</timeZone>
+                </timestamp>
+                <pattern>
+                    <pattern>
+                        {
+                          "service": "${springAppName}",
+                          "severity": "%level",
+                          "traceId": "%X{traceId:-}",
+                          "spanId": "%X{spanId:-}",
+                          "thread": "%thread",
+                          "class": "%logger{40}",
+                          "message": "%message"
+                        }
+                    </pattern>
+                </pattern>
+                <stackTrace/>
+            </providers>
+        </encoder>
+    </appender>
+
+    <!-- Standard Text Console Appender for local dev -->
+    <appender name="TEXT_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [traceId=%X{traceId:-}, spanId=%X{spanId:-}] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <springProfile name="docker,kibana,prod">
+        <root level="INFO">
+            <appender-ref ref="JSON_CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="!docker &amp; !kibana &amp; !prod">
+        <root level="INFO">
+            <appender-ref ref="TEXT_CONSOLE"/>
+        </root>
+    </springProfile>
+</configuration>

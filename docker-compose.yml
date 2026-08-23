@@ -234,9 +234,38 @@ services:
     networks:
       - food-delivery-network
 
+  # Elasticsearch Database (Log Storage & Indexing)
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - food-delivery-network
+
+  # Kibana Dashboard (Log Search & Analytics Web UI)
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - food-delivery-network
+
 networks:
   food-delivery-network:
     driver: bridge
 
 volumes:
   postgres-data:
+  elasticsearch-data:

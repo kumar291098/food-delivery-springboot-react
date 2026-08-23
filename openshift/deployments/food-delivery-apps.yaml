@@ -1,0 +1,155 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: food-delivery
+---
+# ==============================================================================
+# 1. API Gateway Service Deployment & Route
+# ==============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-service
+  namespace: food-delivery
+  labels:
+    app: gateway-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gateway-service
+  template:
+    metadata:
+      labels:
+        app: gateway-service
+    spec:
+      containers:
+        - name: gateway-service
+          image: ghcr.io/kumar291098/food-delivery-gateway-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker,kibana,prod"
+            - name: SPRING_CONFIG_IMPORT
+              value: "configserver:http://config-server:8888"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service
+  namespace: food-delivery
+spec:
+  selector:
+    app: gateway-service
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: gateway-service-route
+  namespace: food-delivery
+spec:
+  to:
+    kind: Service
+    name: gateway-service
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+---
+# ==============================================================================
+# 2. Order Service Deployment
+# ==============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: food-delivery
+  labels:
+    app: order-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: ghcr.io/kumar291098/food-delivery-order-service:latest
+          ports:
+            - containerPort: 8083
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker,kibana,prod"
+            - name: SPRING_CONFIG_IMPORT
+              value: "configserver:http://config-server:8888"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  namespace: food-delivery
+spec:
+  selector:
+    app: order-service
+  ports:
+    - port: 8083
+      targetPort: 8083
+---
+# ==============================================================================
+# 3. Payment Service Deployment
+# ==============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  namespace: food-delivery
+  labels:
+    app: payment-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+    spec:
+      containers:
+        - name: payment-service
+          image: ghcr.io/kumar291098/food-delivery-payment-service:latest
+          ports:
+            - containerPort: 8084
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker,kibana,prod"
+            - name: SPRING_CONFIG_IMPORT
+              value: "configserver:http://config-server:8888"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+  namespace: food-delivery
+spec:
+  selector:
+    app: payment-service
+  ports:
+    - port: 8084
+      targetPort: 8084
