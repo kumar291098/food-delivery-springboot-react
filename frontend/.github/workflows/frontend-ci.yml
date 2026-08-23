@@ -1,0 +1,58 @@
+name: Frontend Monorepo CI/CD
+
+on:
+  push:
+    branches: [ main, master, develop ]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'package.json'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: ⚛️ Build & Validate (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app:
+          - apps/frontend-user
+          - apps/frontend-restaurant
+          - apps/frontend-delivery
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Monorepo Dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Build Application (${{ matrix.app }})
+        working-directory: ${{ matrix.app }}
+        run: npm run build
+
+      - name: Upload Build Artifacts (${{ matrix.app }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.app }}
+          path: ${{ matrix.app }}/dist/
+          if-no-files-found: ignore
+          retention-days: 7

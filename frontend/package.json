@@ -1,20 +1,21 @@
 {
-  "name": "food-delivery-frontend",
+  "name": "food-delivery-frontend-monorepo",
+  "version": "1.0.0",
   "private": true,
-  "version": "0.0.1",
-  "type": "module",
+  "description": "Food Delivery Platform - Unified Frontend Monorepo",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "lucide-react": "^0.552.0",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "dev:user": "npm run dev --workspace=@foodapp/frontend-user",
+    "dev:restaurant": "npm run dev --workspace=@foodapp/frontend-restaurant",
+    "dev:delivery": "npm run dev --workspace=@foodapp/frontend-delivery",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^5.0.4",
     "vite": "^7.1.7"
   }
 }
